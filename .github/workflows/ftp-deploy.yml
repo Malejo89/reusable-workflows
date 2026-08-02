@@ -50,17 +50,24 @@ on:
         required: true
       ftp_password:
         required: true
+      ftp_server_dir:
+        required: false
+      ftp_port:
+        required: false
 
 jobs:
   ftp-deploy:
     name: FTP deploy
     runs-on: ubuntu-latest
+    env:
+      FTP_PORT: ${{ secrets.ftp_port }}
+      FTP_SERVER_DIR: ${{ secrets.ftp_server_dir }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Deploy by FTP
-        if: inputs.port == ''
+        if: env.FTP_PORT == '' && inputs.port == ''
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.ftp_server }}
@@ -68,22 +75,22 @@ jobs:
           password: ${{ secrets.ftp_password }}
           protocol: ${{ inputs.protocol }}
           local-dir: ${{ inputs.local_dir }}
-          server-dir: ${{ inputs.server_dir }}
+          server-dir: ${{ env.FTP_SERVER_DIR != '' && env.FTP_SERVER_DIR || inputs.server_dir }}
           dry-run: ${{ inputs.dry_run }}
           dangerous-clean-slate: ${{ inputs.dangerous_clean_slate }}
           exclude: ${{ inputs.exclude }}
 
       - name: Deploy by FTP with custom port
-        if: inputs.port != ''
+        if: env.FTP_PORT != '' || inputs.port != ''
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.ftp_server }}
           username: ${{ secrets.ftp_username }}
           password: ${{ secrets.ftp_password }}
           protocol: ${{ inputs.protocol }}
-          port: ${{ inputs.port }}
+          port: ${{ env.FTP_PORT != '' && env.FTP_PORT || inputs.port }}
           local-dir: ${{ inputs.local_dir }}
-          server-dir: ${{ inputs.server_dir }}
+          server-dir: ${{ env.FTP_SERVER_DIR != '' && env.FTP_SERVER_DIR || inputs.server_dir }}
           dry-run: ${{ inputs.dry_run }}
           dangerous-clean-slate: ${{ inputs.dangerous_clean_slate }}
           exclude: ${{ inputs.exclude }}
