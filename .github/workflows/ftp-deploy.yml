@@ -1,0 +1,89 @@
+name: Reusable FTP Deploy
+
+on:
+  workflow_call:
+    inputs:
+      local_dir:
+        description: Local directory to upload.
+        required: false
+        type: string
+        default: ./
+      server_dir:
+        description: Remote server directory.
+        required: false
+        type: string
+        default: ./
+      protocol:
+        description: FTP protocol.
+        required: false
+        type: string
+        default: ftp
+      port:
+        description: Optional FTP port.
+        required: false
+        type: string
+        default: ""
+      dry_run:
+        description: Log planned changes without uploading files.
+        required: false
+        type: boolean
+        default: false
+      dangerous_clean_slate:
+        description: Delete files on the server that are not present locally.
+        required: false
+        type: boolean
+        default: false
+      exclude:
+        description: Newline-separated exclude patterns.
+        required: false
+        type: string
+        default: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          README.md
+          .github/**
+    secrets:
+      ftp_server:
+        required: true
+      ftp_username:
+        required: true
+      ftp_password:
+        required: true
+
+jobs:
+  ftp-deploy:
+    name: FTP deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy by FTP
+        if: inputs.port == ''
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.ftp_server }}
+          username: ${{ secrets.ftp_username }}
+          password: ${{ secrets.ftp_password }}
+          protocol: ${{ inputs.protocol }}
+          local-dir: ${{ inputs.local_dir }}
+          server-dir: ${{ inputs.server_dir }}
+          dry-run: ${{ inputs.dry_run }}
+          dangerous-clean-slate: ${{ inputs.dangerous_clean_slate }}
+          exclude: ${{ inputs.exclude }}
+
+      - name: Deploy by FTP with custom port
+        if: inputs.port != ''
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.ftp_server }}
+          username: ${{ secrets.ftp_username }}
+          password: ${{ secrets.ftp_password }}
+          protocol: ${{ inputs.protocol }}
+          port: ${{ inputs.port }}
+          local-dir: ${{ inputs.local_dir }}
+          server-dir: ${{ inputs.server_dir }}
+          dry-run: ${{ inputs.dry_run }}
+          dangerous-clean-slate: ${{ inputs.dangerous_clean_slate }}
+          exclude: ${{ inputs.exclude }}
