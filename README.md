@@ -53,7 +53,7 @@ on:
         description: Log planned changes without uploading files.
         required: true
         type: boolean
-        default: true
+        default: false
 
 jobs:
   deploy:
@@ -143,9 +143,9 @@ Recommended rollout pattern:
 
 1. Convert a small group of repositories first.
 2. Keep caller workflows on `workflow_dispatch`.
-3. Set the manual input `dry_run` default to `true`.
-4. Run once with `dry_run=true` and inspect the diff in the log.
-5. Run with `dry_run=false` only when the planned changes are correct.
+3. Use `dry_run=true` only when you explicitly want a preview run.
+4. Keep the default `dry_run=false` for normal deployments.
+5. Inspect the workflow log after each batch before migrating more repositories.
 6. Re-enable `push` triggers only for repositories where automatic deploy is wanted.
 
 This avoids accidentally triggering hundreds of deployments and burning GitHub Actions minutes.
